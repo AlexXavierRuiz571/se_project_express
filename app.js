@@ -1,9 +1,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const routes = require("./routes");
 
 const { PORT = 3001 } = process.env;
 const app = express();
-const routes = require("./routes");
 
 app.use(express.json());
 app.use((req, res, next) => {

@@ -1,26 +1,49 @@
+const mongoose = require("mongoose");
 const User = require("../models/users");
+const { BAD_REQUEST, NOT_FOUND, DEFAULT_ERROR } = require("../utils/errors");
 
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch((err) => res.status(500).send({ message: "Server error", err }));
+    .catch((err) => {
+      console.error(err);
+      res
+        .status(DEFAULT_ERROR)
+        .send({ message: "A server error has occurred." });
+    });
 };
 
 module.exports.getUser = (req, res) => {
   const { userId } = req.params;
+
   User.findById(userId)
+    .orFail()
     .then((user) => {
-      if (!user) {
-        return res.status(404).send({ message: "User not found" });
-      }
-      return res.send(user);
+      res.send(user);
     })
-    .catch((err) => res.status(500).send({ message: "Server error", err }));
+    .catch((err) => {
+      console.error(err);
+
+      if (err instanceof mongoose.Error.CastError) {
+        return res.status(BAD_REQUEST).send({ message: "Invalid user ID." });
+      }
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "User not found." });
+      }
+      return res.status(DEFAULT_ERROR).send({ message: "A server error has occurred." });
+    });
 };
 
 module.exports.createUser = (req, res) => {
   const { name, avatar } = req.body;
+
   User.create({ name, avatar })
     .then((user) => res.status(201).send(user))
-    .catch((err) => res.status(400).send({ message: "Invalid data", err }));
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "ValidationError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid data." });
+      }
+      return res.status(DEFAULT_ERROR).send({ message: "A server error has occurred." });
+    });
 };
