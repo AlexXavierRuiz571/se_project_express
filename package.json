@@ -1,0 +1,34 @@
+{
+  "name": "se_project_express",
+  "version": "1.0.0",
+  "description": "Server for the WTWR project (TripleTen)",
+  "homepage": "https://github.com/AlexXavierRuiz571/se_project_express#readme",
+  "bugs": {
+    "url": "https://github.com/AlexXavierRuiz571/se_project_express/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexXavierRuiz571/se_project_express.git"
+  },
+  "license": "ISC",
+  "author": "Alex Xavier Ruiz",
+  "type": "commonjs",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "lint": "npx eslint .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.10.2",
+    "eslint-plugin-import": "^2.32.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^2.8.8"
+  }
+}
