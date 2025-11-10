@@ -22,7 +22,7 @@ module.exports.createItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid data.", err });
+        return res.status(BAD_REQUEST).send({ message: "Invalid data." });
       }
       return res
         .status(DEFAULT_ERROR)
