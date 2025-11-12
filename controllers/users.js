@@ -9,7 +9,7 @@ module.exports.getUsers = (req, res) => {
       console.error(err);
       res
         .status(DEFAULT_ERROR)
-        .send({ message: "A server error has occurred." });
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -25,12 +25,12 @@ module.exports.getUser = (req, res) => {
       console.error(err);
 
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user ID." });
+        return res.status(BAD_REQUEST).send({ message: "Invalid data." });
       }
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: "User not found." });
       }
-      return res.status(DEFAULT_ERROR).send({ message: "A server error has occurred." });
+      return res.status(DEFAULT_ERROR).send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -44,6 +44,6 @@ module.exports.createUser = (req, res) => {
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid data." });
       }
-      return res.status(DEFAULT_ERROR).send({ message: "A server error has occurred." });
+      return res.status(DEFAULT_ERROR).send({ message: "An error has occurred on the server." });
     });
 };

@@ -9,7 +9,7 @@ module.exports.getItems = (req, res) => {
       console.error(err);
       res
         .status(DEFAULT_ERROR)
-        .send({ message: "A server error has occurred." });
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -59,20 +59,19 @@ module.exports.likeItem = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true }
   )
-    .then((item) => {
-      if (!item) {
-        return res.status(NOT_FOUND).send({ message: "Item not found." });
-      }
-      return res.send(item);
-    })
+    .orFail()
+    .then((item) => res.send(item))
     .catch((err) => {
       console.error(err);
-      if (err instanceof mongoose.Error.CastError) {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item ID." });
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "Item not found." });
+      }
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid data." });
       }
       return res
         .status(DEFAULT_ERROR)
-        .send({ message: "A server error has occurred." });
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -82,19 +81,18 @@ module.exports.dislikeItem = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true }
   )
-    .then((item) => {
-      if (!item) {
-        return res.status(NOT_FOUND).send({ message: "Item not found." });
-      }
-      return res.send(item);
-    })
+    .orFail()
+    .then((item) => res.send(item))
     .catch((err) => {
       console.error(err);
-      if (err instanceof mongoose.Error.CastError) {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item ID." });
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "Item not found." });
+      }
+      if (err.name === "CastError" || err.name === "ValidationError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid data." });
       }
       return res
         .status(DEFAULT_ERROR)
-        .send({ message: "A server error has occurred." });
+        .send({ message: "An error has occurred on the server." });
     });
 };
