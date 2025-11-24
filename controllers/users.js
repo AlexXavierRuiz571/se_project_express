@@ -11,17 +11,6 @@ const {
   UNAUTHORIZED,
 } = require("../utils/errors");
 
-module.exports.getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.send(users))
-    .catch((err) => {
-      console.error(err);
-      res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server." });
-    });
-};
-
 module.exports.getCurrentUser = (req, res) => {
   User.findById(req.user._id)
     .orFail()
@@ -49,7 +38,7 @@ module.exports.createUser = (req, res) => {
     .then((hash) => User.create({ name, avatar, email, password: hash }))
     .then((user) => {
       const userObj = user.toObject();
-      delete userObj.password; // don't send hash back
+      delete userObj.password;
       res.status(201).send(userObj);
     })
     .catch((err) => {
@@ -82,7 +71,16 @@ module.exports.login = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      res.status(UNAUTHORIZED).send({ message: "Incorrect email or password." });
+
+      if (err.name === "IncorrectCredentialsError") {
+        return res
+          .status(UNAUTHORIZED)
+          .send({ message: "Incorrect email or password." });
+      }
+
+      return res
+        .status(DEFAULT_ERROR)
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -99,7 +97,10 @@ module.exports.updateUser = (req, res) => {
     .catch((err) => {
       console.error(err);
 
-      if (err instanceof mongoose.Error.CastError || err.name === "ValidationError") {
+      if (
+        err instanceof mongoose.Error.CastError ||
+        err.name === "ValidationError"
+      ) {
         return res.status(BAD_REQUEST).send({ message: "Invalid data." });
       }
       if (err.name === "DocumentNotFoundError") {

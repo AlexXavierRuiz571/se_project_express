@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 const ClothingItem = require("../models/clothingItems");
-const { BAD_REQUEST, NOT_FOUND, DEFAULT_ERROR } = require("../utils/errors");
+const {
+  BAD_REQUEST,
+  NOT_FOUND,
+  DEFAULT_ERROR,
+  FORBIDDEN,
+} = require("../utils/errors");
 
 module.exports.getItems = (req, res) => {
   ClothingItem.find({})
@@ -21,12 +26,14 @@ module.exports.createItem = (req, res) => {
     .then((item) => res.status(201).send(item))
     .catch((err) => {
       console.error(err);
+
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid data." });
       }
+
       return res
         .status(DEFAULT_ERROR)
-        .send({ message: "A server error has occurred." });
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -37,7 +44,7 @@ module.exports.deleteItem = (req, res) => {
     .orFail()
     .then((item) => {
       if (!item.owner.equals(req.user._id)) {
-        return res.status(403).send({ message: "Forbidden." });
+        return res.status(FORBIDDEN).send({ message: "Forbidden." });
       }
 
       return ClothingItem.findByIdAndDelete(itemId).then(() =>
@@ -50,12 +57,14 @@ module.exports.deleteItem = (req, res) => {
       if (err instanceof mongoose.Error.CastError) {
         return res.status(BAD_REQUEST).send({ message: "Invalid item ID." });
       }
+
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: "Item not found." });
       }
+
       return res
         .status(DEFAULT_ERROR)
-        .send({ message: "A server error has occurred." });
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -69,12 +78,15 @@ module.exports.likeItem = (req, res) => {
     .then((item) => res.send(item))
     .catch((err) => {
       console.error(err);
+
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: "Item not found." });
       }
+
       if (err instanceof mongoose.Error.CastError) {
         return res.status(BAD_REQUEST).send({ message: "Invalid data." });
       }
+
       return res
         .status(DEFAULT_ERROR)
         .send({ message: "An error has occurred on the server." });
@@ -91,12 +103,18 @@ module.exports.dislikeItem = (req, res) => {
     .then((item) => res.send(item))
     .catch((err) => {
       console.error(err);
+
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: "Item not found." });
       }
-      if (err instanceof mongoose.Error.CastError || err.name === "ValidationError") {
+
+      if (
+        err instanceof mongoose.Error.CastError ||
+        err.name === "ValidationError"
+      ) {
         return res.status(BAD_REQUEST).send({ message: "Invalid data." });
       }
+
       return res
         .status(DEFAULT_ERROR)
         .send({ message: "An error has occurred on the server." });

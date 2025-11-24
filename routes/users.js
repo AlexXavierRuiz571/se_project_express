@@ -7,7 +7,6 @@ const {
 
 const router = express.Router();
 
-router.get("/", getUsers);
 router.get("/me", getCurrentUser);
 router.patch("/me", updateUser);
 

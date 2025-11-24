@@ -4,25 +4,6 @@ The back-end project is focused on creating a server for the WTWR application. I
 error handling, and building a secure API that the front end can use. 
 The goal is to create a reliable service that manages users, clothing items, and user interactions.
 
-<!--
-NOTE FOR REVIEWERS:
-
-GitHub Actions show a failing test related to the removed hard-coded `req.user` object.   
-The project follows Sprint 13 requirements and does not require a mock user.
-The application passes all required Sprint 13 tests in Postman.
-
-Unless I am missing something, I believe this to be an error in the GitHub Actions.
-
-Repository link:
-https://github.com/AlexXavierRuiz571/se_project_express
-
-Actions link:
-https://github.com/AlexXavierRuiz571/se_project_express/actions/runs/19642167759/job/56248270408
-
-Failed test Case:
-prepare-test-endpoints : "The user ID must be set as required in the app.js file."
--->
-
 ---
 
 ### Technologies Used
