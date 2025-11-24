@@ -33,10 +33,16 @@ module.exports.createItem = (req, res) => {
 module.exports.deleteItem = (req, res) => {
   const { itemId } = req.params;
 
-  ClothingItem.findByIdAndDelete(itemId)
+  ClothingItem.findById(itemId)
     .orFail()
-    .then(() => {
-      res.send({ message: "Item deleted." });
+    .then((item) => {
+      if (!item.owner.equals(req.user._id)) {
+        return res.status(403).send({ message: "Forbidden." });
+      }
+
+      return ClothingItem.findByIdAndDelete(itemId).then(() =>
+        res.send({ message: "Item deleted." })
+      );
     })
     .catch((err) => {
       console.error(err);
@@ -66,7 +72,7 @@ module.exports.likeItem = (req, res) => {
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: "Item not found." });
       }
-      if (err.name === "CastError") {
+      if (err instanceof mongoose.Error.CastError) {
         return res.status(BAD_REQUEST).send({ message: "Invalid data." });
       }
       return res
@@ -88,7 +94,7 @@ module.exports.dislikeItem = (req, res) => {
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: "Item not found." });
       }
-      if (err.name === "CastError" || err.name === "ValidationError") {
+      if (err instanceof mongoose.Error.CastError || err.name === "ValidationError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid data." });
       }
       return res

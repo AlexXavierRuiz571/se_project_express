@@ -1,15 +1,31 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
+
 const routes = require("./routes");
+const auth = require("./middleware/auth");
 
 const { PORT = 3001 } = process.env;
+
 const app = express();
 
+app.use(cors());
 app.use(express.json());
+
 app.use((req, res, next) => {
-  req.user = { _id: "5d8b8592978f8bd833ca8133" };
-  next();
+  const { method, path } = req;
+
+  if (method === "POST" && (path === "/signin" || path === "/signup")) {
+    return next();
+  }
+
+  if (method === "GET" && path === "/items") {
+    return next();
+  }
+
+  return auth(req, res, next);
 });
+
 app.use("/", routes);
 
 mongoose
@@ -20,10 +36,6 @@ mongoose
   .catch((err) => {
     console.error("Error connecting to MongoDB:", err);
   });
-
-app.get("/", (req, res) => {
-  res.send("Server is running successfully");
-});
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
