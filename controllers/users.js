@@ -31,31 +31,46 @@ module.exports.getCurrentUser = (req, res) => {
 };
 
 module.exports.createUser = (req, res) => {
-  const { name, avatar, email, password, username } = req.body;
+  const { name, avatar, email, password } = req.body;
 
-if (!username || !password) {
-    return res.status(BAD_REQUEST).send({ message: "Username and Password are required." });
+  if (!email || !password) {
+    return res
+      .status(BAD_REQUEST)
+      .send({ message: "Email and Password are required." });
   }
 
-  return bcrypt
-    .hash(password, 10)
-    .then((hash) => User.create({ name, avatar, email, password: hash }))
+  return User.findOne({ email })
+    .then((existingUser) => {
+      if (existingUser) {
+        res.status(CONFLICT).send({ message: "This email is already in use." });
+        return null;
+      }
+
+      return bcrypt.hash(password, 10);
+    })
+    .then((hash) => {
+      if (!hash) {
+        return null;
+      }
+
+      return User.create({ name, avatar, email, password: hash });
+    })
     .then((user) => {
+      if (!user) {
+        return;
+      }
+
       const userObj = user.toObject();
       delete userObj.password;
-      res.status(201).send(userObj);
+      return res.status(201).send(userObj);
     })
     .catch((err) => {
       console.error(err);
 
-      if (err.code === 11000) {
-        return res
-          .status(CONFLICT)
-          .send({ message: "This email is already in use." });
-      }
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid data." });
       }
+
       return res
         .status(DEFAULT_ERROR)
         .send({ message: "An error has occurred on the server." });
@@ -65,7 +80,13 @@ if (!username || !password) {
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
 
-  User.findUserByCredentials(email, password)
+  if (!email || !password) {
+    return res
+      .status(BAD_REQUEST)
+      .send({ message: "Email and Password are required." });
+  }
+
+  return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
