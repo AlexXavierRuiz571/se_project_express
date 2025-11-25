@@ -37,7 +37,7 @@ if (!username || !password) {
     return res.status(BAD_REQUEST).send({ message: "Username and Password are required." });
   }
 
-  bcrypt
+  return bcrypt
     .hash(password, 10)
     .then((hash) => User.create({ name, avatar, email, password: hash }))
     .then((user) => {
