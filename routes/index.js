@@ -3,7 +3,7 @@ const userRoutes = require("./users");
 const itemRoutes = require("./clothingItems");
 const { createUser, login } = require("../controllers/users");
 const { NOT_FOUND } = require("../utils/errors");
-const auth = require("../middleware/auth");
+const auth = require("../middlewares/auth");
 
 const router = express.Router();
 
