@@ -31,7 +31,11 @@ module.exports.getCurrentUser = (req, res) => {
 };
 
 module.exports.createUser = (req, res) => {
-  const { name, avatar, email, password } = req.body;
+  const { name, avatar, email, password, username } = req.body;
+
+if (!username || !password) {
+    return res.status(BAD_REQUEST).send({ message: "Username and Password are required." });
+  }
 
   bcrypt
     .hash(password, 10)
