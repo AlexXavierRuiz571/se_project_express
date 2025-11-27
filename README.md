@@ -63,11 +63,7 @@ The main ones used in this project:
 
 ### Project Pitch Video
 
-<!-- Yes, I'm aware the video is required for submission.
-I’m waiting for instructor notes/fixes first so I can explain everything cleanly
-without recording a video that shows mistakes. -->
-
-Check out [this video]( ), where I explain the server-side structure of the WTWR back-end, 
+Check out [this video](https://drive.google.com/file/d/1day6GezpD_pAlzyF-fUpQS6do-zGpoy2/view?usp=sharing), where I explain the server-side structure of the WTWR back-end, 
 walk through the API endpoints, and discuss some of the challenges 
 I faced while building the project.
 
