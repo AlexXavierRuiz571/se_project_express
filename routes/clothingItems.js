@@ -1,6 +1,5 @@
 const express = require("express");
 const {
-  getItems,
   createItem,
   deleteItem,
   likeItem,
