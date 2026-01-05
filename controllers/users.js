@@ -4,46 +4,38 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/users");
 const { JWT_SECRET } = require("../utils/config");
 const {
-  BAD_REQUEST,
-  NOT_FOUND,
-  DEFAULT_ERROR,
-  CONFLICT,
-  UNAUTHORIZED,
+  BadRequestError,
+  NotFoundError,
+  ConflictError,
+  UnauthorizedError,
 } = require("../utils/errors");
 
-module.exports.getCurrentUser = (req, res) => {
+module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail()
     .then((user) => res.send(user))
     .catch((err) => {
-      console.error(err);
-
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(BAD_REQUEST).send({ message: "Invalid data." });
+        return next(new BadRequestError("Invalid user ID."));
       }
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found." });
+        return next(new NotFoundError("User not found."));
       }
-      return res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server." });
+      return next(err);
     });
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   if (!email || !password) {
-    return res
-      .status(BAD_REQUEST)
-      .send({ message: "Email and Password are required." });
+    return next(new BadRequestError("Email and Password are required."));
   }
 
   return User.findOne({ email })
     .then((existingUser) => {
       if (existingUser) {
-        res.status(CONFLICT).send({ message: "This email is already in use." });
-        return null;
+        return next(new ConflictError("This email is already in use."));
       }
 
       return bcrypt.hash(password, 10);
@@ -65,25 +57,19 @@ module.exports.createUser = (req, res) => {
       res.status(201).send(userObj);
     })
     .catch((err) => {
-      console.error(err);
-
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid data." });
+        return next(new BadRequestError("Invalid data."));
       }
 
-      return res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server." });
+      return next(err);
     });
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res
-      .status(BAD_REQUEST)
-      .send({ message: "Email and Password are required." });
+    return next(new BadRequestError("Email and Password are required."));
   }
 
   return User.findUserByCredentials(email, password)
@@ -95,21 +81,15 @@ module.exports.login = (req, res) => {
       res.send({ token });
     })
     .catch((err) => {
-      console.error(err);
-
       if (err.name === "IncorrectCredentialsError") {
-        return res
-          .status(UNAUTHORIZED)
-          .send({ message: "Incorrect email or password." });
+        return next(new UnauthorizedError("Incorrect email or password."));
       }
 
-      return res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server." });
+      return next(err);
     });
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, avatar } = req.body;
 
   User.findByIdAndUpdate(
@@ -120,19 +100,15 @@ module.exports.updateUser = (req, res) => {
     .orFail()
     .then((user) => res.send(user))
     .catch((err) => {
-      console.error(err);
-
       if (
         err instanceof mongoose.Error.CastError ||
         err.name === "ValidationError"
       ) {
-        return res.status(BAD_REQUEST).send({ message: "Invalid data." });
+        return next(new BadRequestError("Invalid data."));
       }
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found." });
+        return next(new NotFoundError("User not found."));
       }
-      return res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server." });
+      return next(err);
     });
 };

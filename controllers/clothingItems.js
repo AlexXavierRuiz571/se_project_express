@@ -1,50 +1,43 @@
 const mongoose = require("mongoose");
 const ClothingItem = require("../models/clothingItems");
 const {
-  BAD_REQUEST,
-  NOT_FOUND,
-  DEFAULT_ERROR,
-  FORBIDDEN,
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
 } = require("../utils/errors");
 
-module.exports.getItems = (req, res) => {
+module.exports.getItems = (req, res, next) => {
   ClothingItem.find({})
     .then((items) => res.send(items))
     .catch((err) => {
       console.error(err);
-      res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server." });
+      return next(err);
     });
 };
 
-module.exports.createItem = (req, res) => {
+module.exports.createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
 
   ClothingItem.create({ name, weather, imageUrl, owner })
     .then((item) => res.status(201).send(item))
     .catch((err) => {
-      console.error(err);
-
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid data." });
+        return next(new BadRequestError("Invalid data."));
       }
 
-      return res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server." });
+      return next(err);
     });
 };
 
-module.exports.deleteItem = (req, res) => {
+module.exports.deleteItem = (req, res, next) => {
   const { itemId } = req.params;
 
   ClothingItem.findById(itemId)
     .orFail()
     .then((item) => {
       if (!item.owner.equals(req.user._id)) {
-        return res.status(FORBIDDEN).send({ message: "Forbidden." });
+        return next(new ForbiddenError("Forbidden."));
       }
 
       return ClothingItem.findByIdAndDelete(itemId).then(() =>
@@ -52,23 +45,19 @@ module.exports.deleteItem = (req, res) => {
       );
     })
     .catch((err) => {
-      console.error(err);
-
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item ID." });
+        return next(new BadRequestError("Invalid item ID."));
       }
 
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "Item not found." });
+        return next(new NotFoundError("Item not found."));
       }
 
-      return res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server." });
+      return next(err);
     });
 };
 
-module.exports.likeItem = (req, res) => {
+module.exports.likeItem = (req, res, next) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: req.user._id } },
@@ -77,23 +66,19 @@ module.exports.likeItem = (req, res) => {
     .orFail()
     .then((item) => res.send(item))
     .catch((err) => {
-      console.error(err);
-
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "Item not found." });
+        return next(new NotFoundError("Item not found."));
       }
 
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(BAD_REQUEST).send({ message: "Invalid data." });
+        return next(new BadRequestError("Invalid data."));
       }
 
-      return res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server." });
+      return next(err);
     });
 };
 
-module.exports.dislikeItem = (req, res) => {
+module.exports.dislikeItem = (req, res, next) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: req.user._id } },
@@ -102,21 +87,17 @@ module.exports.dislikeItem = (req, res) => {
     .orFail()
     .then((item) => res.send(item))
     .catch((err) => {
-      console.error(err);
-
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "Item not found." });
+        return next(new NotFoundError("Item not found."));
       }
 
       if (
         err instanceof mongoose.Error.CastError ||
         err.name === "ValidationError"
       ) {
-        return res.status(BAD_REQUEST).send({ message: "Invalid data." });
+        return next(new BadRequestError("Invalid data."));
       }
 
-      return res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server." });
+      return next(err);
     });
 };
