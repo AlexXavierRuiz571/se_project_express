@@ -1,13 +1,5 @@
-const { NODE_ENV, JWT_SECRET } = process.env;
-
-let finalSecret;
-
-if (NODE_ENV === "production") {
-  finalSecret = JWT_SECRET;
-} else {
-  finalSecret = "dev-secret";
-}
+const { JWT_SECRET = "super-strong-secret" } = process.env;
 
 module.exports = {
-  JWT_SECRET: finalSecret,
+  JWT_SECRET,
 };
