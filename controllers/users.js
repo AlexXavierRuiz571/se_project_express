@@ -32,31 +32,19 @@ module.exports.createUser = (req, res, next) => {
     return next(new BadRequestError("Email and Password are required."));
   }
 
-  return User.findOne({ email })
-    .then((existingUser) => {
-      if (existingUser) {
-        return next(new ConflictError("This email is already in use."));
-      }
-
-      return bcrypt.hash(password, 10);
-    })
-    .then((hash) => {
-      if (!hash) {
-        return null;
-      }
-
-      return User.create({ name, avatar, email, password: hash });
-    })
+  return bcrypt
+    .hash(password, 10)
+    .then((hash) => User.create({ name, avatar, email, password: hash }))
     .then((user) => {
-      if (!user) {
-        return;
-      }
-
       const userObj = user.toObject();
       delete userObj.password;
       res.status(201).send(userObj);
     })
     .catch((err) => {
+      if (err.code === 11000) {
+        return next(new ConflictError("This email is already in use."));
+      }
+
       if (err.name === "ValidationError") {
         return next(new BadRequestError("Invalid data."));
       }
